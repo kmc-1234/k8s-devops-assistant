@@ -17,8 +17,8 @@ argocd/applications/k8s-devops-assistant.yaml
 Replace the repository with your real registry:
 
 ```bash
-docker build -t ghcr.io/kmc173/k8s-devops-assistan:0.1.0 .
-docker push ghcr.io/kmc173/k8s-devops-assistan:0.1.0
+docker build -t kmc173/k8s-devops-assistan:0.1.0 .
+docker push kmc173/k8s-devops-assistan:0.1.0
 ```
 
 Then update:
@@ -31,7 +31,7 @@ Set:
 
 ```yaml
 image:
-  repository: ghcr.io/kmc173/k8s-devops-assistan
+  repository: kmc173/k8s-devops-assistan
   tag: "0.1.0"
 ```
 
@@ -98,7 +98,7 @@ argocd/applications/k8s-devops-assistant.yaml
 Replace:
 
 ```yaml
-repoURL: https://github.com/kmc173/k8s-devops-assistan.git
+repoURL: https://github.com/kmc-1234/k8s-devops-assistant.git
 ```
 
 Then commit and push the repository.

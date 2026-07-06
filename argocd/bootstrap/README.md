@@ -52,7 +52,7 @@ argocd/applications/k8s-devops-assistant.yaml
 Replace:
 
 ```yaml
-repoURL: https://github.com/kmc173/k8s-devops-assistan.git
+repoURL: https://github.com/kmc-1234/k8s-devops-assistant.git
 targetRevision: main
 ```
 

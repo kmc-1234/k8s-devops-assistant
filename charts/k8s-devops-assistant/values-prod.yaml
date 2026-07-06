@@ -1,12 +1,12 @@
 replicaCount: 2
 
 image:
-  repository: ghcr.io/kmc173/k8s-devops-assistan
+  repository: kmc173/k8s-devops-assistan
   tag: "0.1.0"
   pullPolicy: IfNotPresent
 
 openai:
-  enabled: true
+  enabled: false
   existingSecret: k8s-devops-assistant-openai
   apiKeySecretKey: OPENAI_API_KEY
 

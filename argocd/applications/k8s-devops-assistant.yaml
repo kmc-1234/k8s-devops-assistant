@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/kmc173/k8s-devops-assistan.git
+    repoURL: https://github.com/kmc-1234/k8s-devops-assistant.git
     targetRevision: main
     path: charts/k8s-devops-assistant
     helm:
