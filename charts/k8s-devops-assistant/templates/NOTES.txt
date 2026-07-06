@@ -1,0 +1,12 @@
+Kubernetes DevOps Assistant is installed.
+
+Service:
+  {{ include "k8s-devops-assistant.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
+
+Health check:
+  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "k8s-devops-assistant.fullname" . }} 8080:{{ .Values.service.port }}
+  curl http://127.0.0.1:8080/healthz
+
+Diagnose example:
+  curl "http://127.0.0.1:8080/diagnose?namespace=ingress-nginx"
+

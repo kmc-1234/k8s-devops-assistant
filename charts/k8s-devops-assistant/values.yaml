@@ -1,0 +1,76 @@
+replicaCount: 1
+
+image:
+  repository: k8s-devops-assistant
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+rbac:
+  create: true
+  clusterWide: true
+  includeMetricsApi: true
+
+podAnnotations: {}
+podLabels: {}
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+containerPort: 8080
+
+env:
+  OPENAI_MODEL: gpt-4.1-mini
+
+openai:
+  enabled: false
+  existingSecret: ""
+  apiKeySecretName: ""
+  apiKeySecretKey: OPENAI_API_KEY
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 96Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+readinessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 15
+  periodSeconds: 20
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: k8s-devops-assistant.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+

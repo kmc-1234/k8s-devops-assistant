@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: k8s-devops-assistant
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/kmc173/k8s-devops-assistan.git
+    targetRevision: main
+    path: charts/k8s-devops-assistant
+    helm:
+      releaseName: k8s-devops-assistant
+      valueFiles:
+        - values-prod.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: devops-assistant
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

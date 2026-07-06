@@ -1,0 +1,22 @@
+replicaCount: 2
+
+image:
+  repository: ghcr.io/kmc173/k8s-devops-assistan
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+
+openai:
+  enabled: true
+  existingSecret: k8s-devops-assistant-openai
+  apiKeySecretKey: OPENAI_API_KEY
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+ingress:
+  enabled: false

@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: devops-assistant
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-devops-assistant
+  namespace: devops-assistant
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-devops-assistant
+  template:
+    metadata:
+      labels:
+        app: k8s-devops-assistant
+    spec:
+      serviceAccountName: k8s-devops-assistant
+      containers:
+        - name: assistant
+          image: k8s-devops-assistant:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: OPENAI_MODEL
+              value: gpt-4.1-mini
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-devops-assistant
+  namespace: devops-assistant
+spec:
+  selector:
+    app: k8s-devops-assistant
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+
