@@ -62,7 +62,7 @@ jobs:
           dockerfile: Dockerfile
 
       - name: Scan source filesystem
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: .
@@ -123,7 +123,7 @@ jobs:
           sbom: true
 
       - name: Scan pushed Docker image
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ env.IMAGE_NAME }}:sha-${{ github.sha }}
           format: sarif
@@ -136,4 +136,3 @@ jobs:
         if: always()
         with:
           sarif_file: trivy-image-results.sarif
-
