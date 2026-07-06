@@ -10,6 +10,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY k8s_assistant ./k8s_assistant
+COPY dashboard ./dashboard
 COPY README.md ./
 
 RUN useradd --create-home --uid 10001 assistant

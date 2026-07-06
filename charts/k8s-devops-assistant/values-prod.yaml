@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: kmc173/k8s-devops-assistan
-  tag: "0.1.0"
+  tag: "0.2.0"
   pullPolicy: IfNotPresent
 
 openai:

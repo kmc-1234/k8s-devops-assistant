@@ -18,6 +18,7 @@ The MVP is intentionally read-only. It does not apply fixes to the cluster.
 - Collects Kubernetes context using safe `kubectl` commands.
 - Produces a structured incident-style diagnosis.
 - Runs as a CLI or a lightweight local HTTP API.
+- Includes a React dashboard served by the same API.
 - Optionally adds an AI summary when `OPENAI_API_KEY` is configured.
 
 ## Requirements
@@ -66,6 +67,12 @@ Then call:
 curl "http://127.0.0.1:8080/diagnose?namespace=staging"
 ```
 
+Open the dashboard:
+
+```text
+http://127.0.0.1:8080/
+```
+
 ## Optional AI Summary
 
 Set an OpenAI API key to add an AI-generated operational summary on top of the deterministic analysis:
@@ -99,6 +106,10 @@ k8s_assistant/
   cli.py         CLI entry point
   kubectl.py     Safe kubectl wrapper
   models.py      Shared dataclasses
+dashboard/
+  index.html     React dashboard shell
+  app.js         Dashboard application
+  styles.css     Dashboard styles
 tests/
   test_analyzer.py
 manifests/

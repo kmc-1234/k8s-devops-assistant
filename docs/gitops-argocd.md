@@ -17,8 +17,8 @@ argocd/applications/k8s-devops-assistant.yaml
 Replace the repository with your real registry:
 
 ```bash
-docker build -t kmc173/k8s-devops-assistan:0.1.0 .
-docker push kmc173/k8s-devops-assistan:0.1.0
+docker build -t kmc173/k8s-devops-assistan:0.2.0 .
+docker push kmc173/k8s-devops-assistan:0.2.0
 ```
 
 Then update:
@@ -32,7 +32,7 @@ Set:
 ```yaml
 image:
   repository: kmc173/k8s-devops-assistan
-  tag: "0.1.0"
+  tag: "0.2.0"
 ```
 
 ## 2. Optional OpenAI Secret
@@ -124,6 +124,12 @@ Test:
 ```bash
 curl http://127.0.0.1:8080/healthz
 curl "http://127.0.0.1:8080/diagnose?namespace=ingress-nginx"
+```
+
+Open the dashboard:
+
+```text
+http://127.0.0.1:8080/
 ```
 
 ## 6. RBAC Scope
