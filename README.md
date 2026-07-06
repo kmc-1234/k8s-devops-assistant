@@ -169,6 +169,29 @@ kubectl apply -f argocd/applications/k8s-devops-assistant.yaml
 
 Full instructions are in [docs/gitops-argocd.md](docs/gitops-argocd.md).
 
+## CI/CD
+
+The GitHub Actions pipeline tests code, scans security issues, builds the Docker image, and pushes it to Docker Hub:
+
+```text
+.github/workflows/ci-cd.yml
+```
+
+Docker Hub image:
+
+```text
+kmc173/k8s-devops-assistan
+```
+
+Required GitHub secrets:
+
+```text
+DOCKERHUB_USERNAME
+DOCKERHUB_TOKEN
+```
+
+Full instructions are in [docs/cicd.md](docs/cicd.md).
+
 The production values expose the assistant as a `NodePort` on port `30080`:
 
 ```bash
