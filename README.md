@@ -169,6 +169,18 @@ kubectl apply -f argocd/applications/k8s-devops-assistant.yaml
 
 Full instructions are in [docs/gitops-argocd.md](docs/gitops-argocd.md).
 
+The production values expose the assistant as a `NodePort` on port `30080`:
+
+```bash
+kubectl -n devops-assistant get svc k8s-devops-assistant
+```
+
+Open:
+
+```text
+http://<node-ip>:30080/
+```
+
 ## Production Setup Notes
 
 For an internal deployment:

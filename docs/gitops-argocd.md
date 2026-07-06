@@ -132,6 +132,19 @@ Open the dashboard:
 http://127.0.0.1:8080/
 ```
 
+The production values also expose a NodePort:
+
+```bash
+kubectl -n devops-assistant get svc k8s-devops-assistant
+kubectl get nodes -o wide
+```
+
+Open:
+
+```text
+http://<node-ip>:30080/
+```
+
 ## 6. RBAC Scope
 
 By default the chart uses cluster-wide read-only RBAC so the assistant can troubleshoot namespaces across the cluster.

@@ -5,6 +5,12 @@ image:
   tag: "0.2.0"
   pullPolicy: IfNotPresent
 
+service:
+  type: NodePort
+  port: 80
+  targetPort: 8080
+  nodePort: 30080
+
 openai:
   enabled: false
   existingSecret: k8s-devops-assistant-openai
