@@ -65,7 +65,16 @@ On push to `main`, the workflow publishes:
 ```text
 kmc173/k8s-devops-assistan:latest
 kmc173/k8s-devops-assistan:main
+kmc173/k8s-devops-assistan:0.<github-run-number>.0
 kmc173/k8s-devops-assistan:sha-<git-sha>
+```
+
+Examples:
+
+```text
+GitHub run number 1 -> kmc173/k8s-devops-assistan:0.1.0
+GitHub run number 2 -> kmc173/k8s-devops-assistan:0.2.0
+GitHub run number 3 -> kmc173/k8s-devops-assistan:0.3.0
 ```
 
 On a Git tag like `v0.3.0`, it also publishes:
@@ -85,6 +94,14 @@ charts/k8s-devops-assistant/values-prod.yaml
 Avoid using `latest` for GitOps production deployments.
 
 ## Release Flow
+
+For normal pushes, the Docker image tag is generated automatically as:
+
+```text
+0.<github-run-number>.0
+```
+
+For a controlled release, create a Git tag.
 
 1. Update the image tag in:
 
@@ -114,4 +131,3 @@ git push origin v0.3.0
 ```
 
 5. Argo CD will sync the chart from Git.
-
