@@ -2,14 +2,14 @@ replicaCount: 2
 
 image:
   repository: kmc173/k8s-devops-assistan
-  tag: "0.2.0"
+  tag: main
   pullPolicy: IfNotPresent
 
 service:
   type: NodePort
   port: 80
   targetPort: 8080
-  nodePort: 30080
+  nodePort: 30081
 
 openai:
   enabled: false
