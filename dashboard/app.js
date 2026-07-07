@@ -8,6 +8,7 @@ function App() {
   const [pod, setPod] = React.useState("");
   const [deployment, setDeployment] = React.useState("");
   const [useAi, setUseAi] = React.useState(false);
+  const [sendAlert, setSendAlert] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [health, setHealth] = React.useState("checking");
   const [error, setError] = React.useState("");
@@ -33,6 +34,7 @@ function App() {
     if (pod.trim()) params.set("pod", pod.trim());
     if (deployment.trim()) params.set("deployment", deployment.trim());
     if (useAi) params.set("ai", "true");
+    if (sendAlert) params.set("notify", "true");
 
     setNamespace(selectedNamespace);
     setLoading(true);
@@ -71,6 +73,8 @@ function App() {
           setDeployment,
           useAi,
           setUseAi,
+          sendAlert,
+          setSendAlert,
           loading,
           runDiagnosis,
         }),
@@ -164,6 +168,16 @@ function ControlPanel(props) {
         h("span", null, "Include AI summary")
       ),
       h(
+        "label",
+        { className: "toggle" },
+        h("input", {
+          type: "checkbox",
+          checked: props.sendAlert,
+          onChange: (event) => props.setSendAlert(event.target.checked),
+        }),
+        h("span", null, "Send email alert")
+      ),
+      h(
         "button",
         { className: "primary", disabled: props.loading, type: "submit" },
         props.loading ? h("span", { className: "loader" }) : "Run Diagnosis"
@@ -250,6 +264,7 @@ function Summary({ diagnosis, highestSeverity }) {
       ),
       h("span", { className: `badge ${highestSeverity}` }, labelForSeverity(highestSeverity))
     ),
+    diagnosis.notification ? h(NotificationStatus, { notification: diagnosis.notification }) : null,
     diagnosis.ai_summary
       ? h(
           "div",
@@ -258,6 +273,17 @@ function Summary({ diagnosis, highestSeverity }) {
           h("p", null, diagnosis.ai_summary)
         )
       : null
+  );
+}
+
+function NotificationStatus({ notification }) {
+  const status = notification.sent ? "sent" : "not sent";
+  const detail = notification.error || notification.reason || `${notification.finding_count || 0} alert finding(s)`;
+  return h(
+    "div",
+    { className: `notification-status ${notification.sent ? "sent" : "skipped"}` },
+    h("strong", null, `Notification ${status}`),
+    h("span", null, detail)
   );
 }
 
@@ -353,4 +379,3 @@ function labelForSeverity(severity) {
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(h(App));
-

@@ -16,6 +16,22 @@ openai:
   existingSecret: k8s-devops-assistant-openai
   apiKeySecretKey: OPENAI_API_KEY
 
+env:
+  CPU_ALERT_THRESHOLD_PERCENT: "80"
+  PVC_ALERT_THRESHOLD_PERCENT: "80"
+
+notifications:
+  enabled: true
+  existingSecret: k8s-devops-assistant-smtp
+  hostSecretKey: SMTP_HOST
+  portSecretKey: SMTP_PORT
+  usernameSecretKey: SMTP_USERNAME
+  passwordSecretKey: SMTP_PASSWORD
+  fromSecretKey: SMTP_FROM
+  toSecretKey: ALERT_EMAIL_TO
+  starttls: true
+  alertSeverities: critical,warning
+
 resources:
   requests:
     cpu: 100m

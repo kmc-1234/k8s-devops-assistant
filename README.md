@@ -192,7 +192,49 @@ The rendered deployment should show:
 image: kmc173/k8s-devops-assistan:main
 ```
 
-### 4. Install With Helm
+### 4. Create The SMTP Secret
+
+The production Helm values enable email notifications and expect an SMTP secret named:
+
+```text
+k8s-devops-assistant-smtp
+```
+
+Do not commit SMTP usernames, passwords, or access keys into Git. Create the secret directly in the cluster:
+
+```bash
+kubectl create namespace devops-assistant
+
+kubectl -n devops-assistant create secret generic k8s-devops-assistant-smtp \
+  --from-literal=SMTP_HOST='<smtp-host>' \
+  --from-literal=SMTP_PORT='587' \
+  --from-literal=SMTP_USERNAME='<smtp-username>' \
+  --from-literal=SMTP_PASSWORD='<smtp-password>' \
+  --from-literal=SMTP_FROM='noreply@example.com' \
+  --from-literal=ALERT_EMAIL_TO='devops-team@example.com'
+```
+
+For Amazon SES, use the SES SMTP endpoint, SMTP username, and SMTP password generated in AWS. If credentials were pasted into chat, logs, tickets, or shell history, rotate them before using the system.
+
+Verify the secret exists without printing the password:
+
+```bash
+kubectl -n devops-assistant get secret k8s-devops-assistant-smtp
+```
+
+Notification behavior:
+
+```text
+Endpoint: /alerts?namespace=<namespace>
+Alternative: /diagnose?namespace=<namespace>&notify=true
+Default severities: critical,warning
+CPU alert threshold: 80%
+PVC alert threshold: 80%
+```
+
+CPU alerts need Kubernetes metrics-server because the assistant reads `kubectl top pod`. PVC usage alerts use kubelet stats through the Kubernetes API and require the chart's cluster-wide RBAC.
+
+### 5. Install With Helm
 
 Install or upgrade the assistant:
 
@@ -213,7 +255,7 @@ helm upgrade --install k8s-devops-assistant charts/k8s-devops-assistant \
   --set service.nodePort=30082
 ```
 
-### 5. Check The Installation
+### 6. Check The Installation
 
 ```bash
 kubectl -n devops-assistant rollout status deployment/k8s-devops-assistant --timeout=180s
@@ -228,7 +270,7 @@ Pods: 1/1 Running
 Service: NodePort 80:30081/TCP
 ```
 
-### 6. Open The Dashboard
+### 7. Open The Dashboard
 
 Get the node IP:
 
@@ -253,6 +295,7 @@ Test the API:
 ```bash
 curl http://<node-ip>:30081/healthz
 curl "http://<node-ip>:30081/diagnose?namespace=devops-assistant"
+curl "http://<node-ip>:30081/alerts?namespace=devops-assistant"
 ```
 
 Expected health response:
@@ -263,7 +306,9 @@ Expected health response:
 }
 ```
 
-### 7. Open Firewall Ports
+The `/alerts` endpoint sends email only when `NOTIFICATIONS_ENABLED=true` and alert findings exist.
+
+### 8. Open Firewall Ports
 
 If the dashboard does not open from your browser, allow the NodePort on the server:
 
@@ -281,7 +326,7 @@ sudo ufw allow 30443/tcp
 sudo ufw reload
 ```
 
-### 8. Install Argo CD
+### 9. Install Argo CD
 
 Create the Argo CD namespace:
 
@@ -310,7 +355,7 @@ Verify the Application CRD:
 kubectl get crd applications.argoproj.io
 ```
 
-### 9. Deploy With Argo CD GitOps
+### 10. Deploy With Argo CD GitOps
 
 Apply the Argo CD application:
 
@@ -342,7 +387,7 @@ ClusterRole
 ClusterRoleBinding
 ```
 
-### 10. Expose Argo CD UI With NodePort
+### 11. Expose Argo CD UI With NodePort
 
 Patch the Argo CD server service:
 
@@ -379,7 +424,7 @@ k8s-devops-assistant
 
 You should see the live GitOps resource tree.
 
-### 11. Live GitOps Experience
+### 12. Live GitOps Experience
 
 To see GitOps working:
 
@@ -418,7 +463,7 @@ kubectl -n devops-assistant get pods
 
 Argo CD will detect the Git change and sync the cluster to the new desired state.
 
-### 12. CI/CD Setup
+### 13. CI/CD Setup
 
 The GitHub Actions workflow is:
 
@@ -452,7 +497,7 @@ kmc173/k8s-devops-assistan:0.<github-run-number>.0
 kmc173/k8s-devops-assistan:sha-<git-sha>
 ```
 
-### 13. Troubleshooting
+### 14. Troubleshooting
 
 Check pods:
 

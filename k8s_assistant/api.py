@@ -6,6 +6,7 @@ from pathlib import Path
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
+from .notifier import maybe_send_alert
 from .runner import run_diagnosis
 
 STATIC_ROOT = Path(__file__).resolve().parent.parent / "dashboard"
@@ -26,7 +27,7 @@ class AssistantHandler(BaseHTTPRequestHandler):
             self._json(200, {"status": "ok"})
             return
 
-        if parsed.path != "/diagnose":
+        if parsed.path not in {"/diagnose", "/alerts"}:
             self._json(404, {"error": "not found"})
             return
 
@@ -35,6 +36,7 @@ class AssistantHandler(BaseHTTPRequestHandler):
         pod = _one(query, "pod")
         deployment = _one(query, "deployment")
         use_ai = _one(query, "ai", "false").lower() == "true"
+        notify = parsed.path == "/alerts" or _one(query, "notify", "false").lower() == "true"
 
         try:
             diagnosis = run_diagnosis(
@@ -47,7 +49,14 @@ class AssistantHandler(BaseHTTPRequestHandler):
             self._json(500, {"error": str(exc)})
             return
 
-        self._json(200, diagnosis.as_dict())
+        payload = diagnosis.as_dict()
+        if notify:
+            try:
+                payload["notification"] = maybe_send_alert(diagnosis)
+            except Exception as exc:
+                payload["notification"] = {"enabled": True, "sent": False, "error": str(exc)}
+
+        self._json(200, payload)
 
     def log_message(self, format: str, *args: object) -> None:
         return

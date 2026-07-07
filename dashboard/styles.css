@@ -291,6 +291,32 @@ input {
   color: var(--muted);
 }
 
+.notification-status {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.notification-status.sent {
+  background: #dcfce7;
+  color: #14532d;
+}
+
+.notification-status.skipped {
+  background: #f8fafc;
+  color: #475569;
+  border: 1px solid var(--line);
+}
+
+.notification-status span {
+  color: inherit;
+}
+
 .badge {
   display: inline-flex;
   align-items: center;
@@ -484,4 +510,3 @@ input {
     font-size: 18px;
   }
 }
-

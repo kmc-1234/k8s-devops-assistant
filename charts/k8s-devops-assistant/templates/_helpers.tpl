@@ -46,3 +46,10 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 {{- end -}}
 
+{{- define "k8s-devops-assistant.smtpSecretName" -}}
+{{- if .Values.notifications.existingSecret -}}
+{{- .Values.notifications.existingSecret -}}
+{{- else -}}
+{{- printf "%s-smtp" (include "k8s-devops-assistant.fullname" .) -}}
+{{- end -}}
+{{- end -}}

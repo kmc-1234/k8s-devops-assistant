@@ -142,6 +142,54 @@ class AnalyzerTest(unittest.TestCase):
         not_ready = [finding for finding in diagnosis.findings if finding.title.startswith("Pod is not ready")]
         self.assertEqual(1, len(not_ready))
 
+    def test_detects_high_cpu_usage(self):
+        pods = {
+            "items": [
+                {
+                    "metadata": {"name": "api-123"},
+                    "spec": {
+                        "containers": [
+                            {
+                                "name": "api",
+                                "resources": {"limits": {"cpu": "500m", "memory": "256Mi"}},
+                            }
+                        ]
+                    },
+                    "status": {
+                        "phase": "Running",
+                        "conditions": [{"type": "Ready", "status": "True"}],
+                        "containerStatuses": [
+                            {
+                                "name": "api",
+                                "restartCount": 0,
+                                "state": {"running": {}},
+                                "lastState": {},
+                            }
+                        ],
+                    },
+                }
+            ]
+        }
+
+        diagnosis = analyze("prod", pods, pod_metrics={"api-123": {"cpu_millicores": 420}})
+
+        self.assertTrue(any("CPU usage is high" in finding.title for finding in diagnosis.findings))
+
+    def test_detects_high_pvc_usage(self):
+        pods = {"items": []}
+        pvc_usage = {
+            "data-postgres-0": {
+                "used_bytes": 90,
+                "capacity_bytes": 100,
+                "usage_percent": 90.0,
+                "pods": ["postgres-0"],
+            }
+        }
+
+        diagnosis = analyze("prod", pods, pvc_usage=pvc_usage)
+
+        self.assertTrue(any("PVC usage is high" in finding.title for finding in diagnosis.findings))
+
 
 if __name__ == "__main__":
     unittest.main()

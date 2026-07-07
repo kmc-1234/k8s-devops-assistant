@@ -47,6 +47,15 @@ class Kubectl:
         output = self._run(["get", target, "-n", self.namespace, "-o", "json"])
         return json.loads(output)
 
+    def get_cluster_json(self, resource: str, name: str | None = None) -> dict[str, Any]:
+        target = resource if name is None else f"{resource}/{name}"
+        output = self._run(["get", target, "-o", "json"])
+        return json.loads(output)
+
+    def get_raw(self, path: str) -> dict[str, Any]:
+        output = self._run(["get", "--raw", path])
+        return json.loads(output)
+
     def get_pods(self) -> dict[str, Any]:
         return self.get_json("pods")
 
@@ -55,6 +64,12 @@ class Kubectl:
 
     def get_events(self) -> dict[str, Any]:
         return self.get_json("events")
+
+    def get_nodes(self) -> dict[str, Any]:
+        return self.get_cluster_json("nodes")
+
+    def top_pods(self) -> str:
+        return self._run(["top", "pod", "-n", self.namespace, "--no-headers"])
 
     def describe_pod(self, pod: str) -> str:
         return self._run(["describe", "pod", pod, "-n", self.namespace])
@@ -69,4 +84,3 @@ class Kubectl:
 
     def rollout_status(self, deployment: str) -> str:
         return self._run(["rollout", "status", f"deployment/{deployment}", "-n", self.namespace])
-

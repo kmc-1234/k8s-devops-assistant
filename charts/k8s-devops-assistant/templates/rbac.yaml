@@ -10,6 +10,9 @@ rules:
   - apiGroups: [""]
     resources: ["pods", "pods/log", "events", "nodes", "services", "configmaps", "persistentvolumeclaims"]
     verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["nodes/proxy"]
+    verbs: ["get"]
   - apiGroups: ["apps"]
     resources: ["deployments", "replicasets", "statefulsets", "daemonsets"]
     verbs: ["get", "list", "watch"]
@@ -69,4 +72,3 @@ subjects:
     namespace: {{ .Release.Namespace }}
 {{- end }}
 {{- end }}
-

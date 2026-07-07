@@ -22,10 +22,16 @@ def analyze(
     selected_pod: str | None = None,
     deployment_status: str | None = None,
     logs: dict[str, str] | None = None,
+    pod_metrics: dict[str, dict[str, Any]] | None = None,
+    pvc_usage: dict[str, dict[str, Any]] | None = None,
+    cpu_threshold_percent: float = 80.0,
+    pvc_threshold_percent: float = 80.0,
 ) -> Diagnosis:
     diagnosis = Diagnosis(namespace=namespace)
     events = events or {"items": []}
     logs = logs or {}
+    pod_metrics = pod_metrics or {}
+    pvc_usage = pvc_usage or {}
 
     pod_items = pods.get("items", [])
     if selected_pod:
@@ -46,10 +52,12 @@ def analyze(
         )
 
     for pod in pod_items:
-        _analyze_pod(namespace, pod, events, logs, diagnosis)
+        _analyze_pod(namespace, pod, events, logs, pod_metrics, cpu_threshold_percent, diagnosis)
 
     if deployment_status:
         _analyze_deployment(namespace, deployment_status, diagnosis)
+
+    _analyze_pvc_usage(namespace, pvc_usage, pvc_threshold_percent, diagnosis)
 
     if not diagnosis.findings:
         diagnosis.summary = "No obvious Kubernetes failure patterns were detected."
@@ -69,6 +77,8 @@ def _analyze_pod(
     pod: dict[str, Any],
     events: dict[str, Any],
     logs: dict[str, str],
+    pod_metrics: dict[str, dict[str, Any]],
+    cpu_threshold_percent: float,
     diagnosis: Diagnosis,
 ) -> None:
     metadata = pod.get("metadata", {})
@@ -145,6 +155,8 @@ def _analyze_pod(
                     ],
                 )
             )
+
+    _analyze_cpu_usage(namespace, pod_name, spec, pod_metrics, cpu_threshold_percent, diagnosis)
 
 
 def _is_completed_pod(status: dict[str, Any]) -> bool:
@@ -276,6 +288,97 @@ def _analyze_deployment(namespace: str, deployment_status: str, diagnosis: Diagn
         )
 
 
+def _analyze_cpu_usage(
+    namespace: str,
+    pod_name: str,
+    spec: dict[str, Any],
+    pod_metrics: dict[str, dict[str, Any]],
+    threshold_percent: float,
+    diagnosis: Diagnosis,
+) -> None:
+    metrics = pod_metrics.get(pod_name)
+    if not metrics:
+        return
+
+    usage_millicores = metrics.get("cpu_millicores")
+    if usage_millicores is None:
+        return
+
+    limit_millicores = 0.0
+    request_millicores = 0.0
+    for container in spec.get("containers", []):
+        resources = container.get("resources", {})
+        limit_millicores += _cpu_to_millicores(resources.get("limits", {}).get("cpu"))
+        request_millicores += _cpu_to_millicores(resources.get("requests", {}).get("cpu"))
+
+    baseline_type = ""
+    baseline_millicores = 0.0
+    if limit_millicores > 0:
+        baseline_type = "limit"
+        baseline_millicores = limit_millicores
+    elif request_millicores > 0:
+        baseline_type = "request"
+        baseline_millicores = request_millicores
+
+    if baseline_millicores <= 0:
+        return
+
+    percent = usage_millicores / baseline_millicores * 100
+    if percent < threshold_percent:
+        return
+
+    diagnosis.findings.append(
+        Finding(
+            severity="warning",
+            title=f"Pod CPU usage is high: {pod_name}",
+            evidence=[
+                f"cpu_usage={usage_millicores:g}m",
+                f"cpu_{baseline_type}={baseline_millicores:g}m",
+                f"cpu_usage_percent={percent:.1f}",
+                f"threshold_percent={threshold_percent:g}",
+            ],
+            explanation=f"The pod is using at least {threshold_percent:g}% of its configured CPU {baseline_type}. This can cause throttling, slow responses, or instability under load.",
+            recommended_commands=[
+                f"kubectl top pod {pod_name} -n {namespace}",
+                f"kubectl describe pod {pod_name} -n {namespace}",
+                f"kubectl get pod {pod_name} -n {namespace} -o yaml",
+            ],
+        )
+    )
+
+
+def _analyze_pvc_usage(
+    namespace: str,
+    pvc_usage: dict[str, dict[str, Any]],
+    threshold_percent: float,
+    diagnosis: Diagnosis,
+) -> None:
+    for pvc_name, usage in sorted(pvc_usage.items()):
+        percent = usage.get("usage_percent")
+        if percent is None or percent < threshold_percent:
+            continue
+
+        diagnosis.findings.append(
+            Finding(
+                severity="warning",
+                title=f"PVC usage is high: {pvc_name}",
+                evidence=[
+                    f"used_bytes={usage.get('used_bytes')}",
+                    f"capacity_bytes={usage.get('capacity_bytes')}",
+                    f"usage_percent={percent:.1f}",
+                    f"threshold_percent={threshold_percent:g}",
+                    "pods=" + ",".join(usage.get("pods", [])),
+                ],
+                explanation=f"The persistent volume claim is using at least {threshold_percent:g}% of its reported capacity. Applications can fail when writable volumes fill up.",
+                recommended_commands=[
+                    f"kubectl get pvc {pvc_name} -n {namespace}",
+                    f"kubectl describe pvc {pvc_name} -n {namespace}",
+                    f"kubectl get pods -n {namespace} -o wide",
+                ],
+            )
+        )
+
+
 def _event_messages_for_pod(events: dict[str, Any], pod_name: str) -> list[str]:
     messages = []
     for event in events.get("items", []):
@@ -312,3 +415,21 @@ def _log_hints(logs: dict[str, str], pod_name: str, container_name: str) -> list
         if "out of memory" in lowered or "oom" in lowered:
             hints.append(f"{suffix}_logs_hint=out of memory")
     return hints[:5]
+
+
+def _cpu_to_millicores(value: Any) -> float:
+    if value is None:
+        return 0.0
+    text = str(value).strip()
+    if not text:
+        return 0.0
+    try:
+        if text.endswith("m"):
+            return float(text[:-1])
+        if text.endswith("n"):
+            return float(text[:-1]) / 1_000_000
+        if text.endswith("u"):
+            return float(text[:-1]) / 1_000
+        return float(text) * 1000
+    except ValueError:
+        return 0.0

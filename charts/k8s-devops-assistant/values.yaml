@@ -31,12 +31,26 @@ containerPort: 8080
 
 env:
   OPENAI_MODEL: gpt-4.1-mini
+  CPU_ALERT_THRESHOLD_PERCENT: "80"
+  PVC_ALERT_THRESHOLD_PERCENT: "80"
 
 openai:
   enabled: false
   existingSecret: ""
   apiKeySecretName: ""
   apiKeySecretKey: OPENAI_API_KEY
+
+notifications:
+  enabled: false
+  existingSecret: ""
+  hostSecretKey: SMTP_HOST
+  portSecretKey: SMTP_PORT
+  usernameSecretKey: SMTP_USERNAME
+  passwordSecretKey: SMTP_PASSWORD
+  fromSecretKey: SMTP_FROM
+  toSecretKey: ALERT_EMAIL_TO
+  starttls: true
+  alertSeverities: critical,warning
 
 resources:
   requests:
